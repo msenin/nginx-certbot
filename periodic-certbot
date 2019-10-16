@@ -1,0 +1,13 @@
+#!/bin/bash
+
+. /etc/default/cron
+
+current_date=$(date)
+
+echo "${current_date} Trying to renew certificates"  >> /var/log/certbot-crontab-daily.log
+/usr/bin/certbot renew ${CERTBOT_FLAGS} ${CERTBOT_RENEW_FLAGS} --renew-hook '/usr/sbin/nginx -s reload' >> /var/log/certbot-crontab-daily.log
+ret_code=$?
+if [ ${ret_code} != 0 ]; then
+    echo "${current_date} Error: Exit code ${ret_code} when executing certbot command." >> /var/log/certbot-crontab-daily.log
+    exit ${ret_code}
+fi

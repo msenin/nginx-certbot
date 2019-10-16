@@ -1,0 +1,31 @@
+version: '2'
+services:
+  wfconverter:
+    image: workflow-converter:latest
+    ports:
+      - 81:8080
+    restart: always
+    command: "java -jar ./workflow-converter.jar --spring.profiles.active=docker"
+
+  nginx:
+    depends_on:
+      - wfconverter
+    image: docker-registry.labs.intellij.net/jetbrains/nginx-certbot:1.16-alpine
+    ports:
+      - 80:80
+      - 443:443
+    environment:
+      CERTBOT_ACCOUNT_EMAIL: "mikhail.senin@jetbrains.com"
+      DEFAULT_DOMAIN: "youtrack-workflow-converter.jetbrains.com"
+      CERTBOT_DOMAINS: "youtrack-workflow-converter.jetbrains.com"
+      CERTBOT_FLAGS: ""
+      CERTBOT_RENEW_FLAGS: ""
+    volumes:
+      - /home/ec2-user/nginx-certbot/nginx-configs/youtrack-workflow-converter.jetbrains.com.conf:/etc/nginx/conf.ssl.d/youtrack-workflow-converter.jetbrains.com.conf
+      - /home/ec2-user/nginx-certbot/letsencrypt/etc:/etc/letsencrypt/
+      - /home/ec2-user/nginx-certbot/letsencrypt/var:/var/lib/letsencrypt/
+    restart: always
+
+volumes:
+  letsencrypt_etc:
+  letsencrypt_var:
